@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int          @id @default(autoincrement())
+  email           String       @unique
+  password        String
+  name            String?
+  lastName        String?
+  country         String?
+  birthDate       DateTime?
+  isPro           Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  avatarUrl       String?
+  friendsReceived Friendship[] @relation("friend_of")
+  friendsSent     Friendship[] @relation("user_friends")
+  scores          UserScore[]
+}
+
+model Course {
+  id          Int          @id @default(autoincrement())
+  title       String
+  slug        String       @unique
+  description String?
+  createdAt   DateTime     @default(now())
+  lessons     Lesson[]
+  pathCourses PathCourse[]
+  scores      UserScore[]
+}
+
+model Lesson {
+  id       Int    @id @default(autoincrement())
+  title    String
+  content  String
+  order    Int
+  courseId Int
+  course   Course @relation(fields: [courseId], references: [id])
+}
+
+model LearningPath {
+  id          Int          @id @default(autoincrement())
+  title       String
+  slug        String       @unique
+  description String?
+  createdAt   DateTime     @default(now())
+  pathCourses PathCourse[]
+}
+
+model PathCourse {
+  id             Int          @id @default(autoincrement())
+  learningPathId Int
+  courseId       Int
+  order          Int
+  course         Course       @relation(fields: [courseId], references: [id])
+  learningPath   LearningPath @relation(fields: [learningPathId], references: [id])
+
+  @@unique([learningPathId, courseId])
+}
+
+model Friendship {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  friendId  Int
+  status    String   @default("accepted")
+  createdAt DateTime @default(now())
+  friend    User     @relation("friend_of", fields: [friendId], references: [id])
+  user      User     @relation("user_friends", fields: [userId], references: [id])
+
+  @@unique([userId, friendId])
+}
+
+model UserScore {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  courseId  Int?
+  points    Int      @default(0)
+  updatedAt DateTime @updatedAt
+  course    Course?  @relation(fields: [courseId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
