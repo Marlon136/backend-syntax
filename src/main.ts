@@ -13,14 +13,15 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
 
   const configService = app.get(ConfigService);
-  const frontendUrl = configService.get<string>('FRONTEND_URL') || configService.get<string>('APP_URL') || 'http://localhost:3000';
+  const frontendUrl = configService.get<string>('FRONTEND_URL') || configService.get<string>('APP_URL') || 'https://yntax.vercel.app';
   const allowedOrigins = frontendUrl.split(',').map((origin) => origin.trim());
   app.enableCors({ origin: allowedOrigins, credentials: true });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const port = configService.get<number>('PORT') || 3001;
 
-  await app.listen(port);
-  console.log(`Backend running on http://localhost:${port}`);
+  await app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 }
 bootstrap();
